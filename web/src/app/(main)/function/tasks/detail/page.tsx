@@ -9,6 +9,7 @@ import { ArchiveIcon, ArrowLeftIcon, BrainIcon, CheckIcon, CircleAlertIcon, Paus
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 
+import { ThemeSwitcher } from "@/app/(main)/_components/sidebar/theme-switcher";
 import { StatusBadge } from "@/components/status-badge";
 import { TaskLLMProfileChain } from "@/components/task-llm-profile-chain";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -353,15 +354,18 @@ function TaskDetailInner() {
   return (
     <Tabs value={tab} onValueChange={setTab} className="flex flex-1 flex-col gap-0">
       {/* Top fixed area */}
-      <header className="sticky top-0 z-10 flex flex-col gap-2 border-b bg-background/95 px-4 py-2.5 backdrop-blur lg:px-6">
-        <div className="flex items-center gap-2">
+      <header className="sticky top-0 z-10 flex flex-col gap-3 border-b bg-background/95 px-4 pt-5 pb-2 backdrop-blur lg:px-8">
+        <div className="flex flex-wrap items-center gap-2">
           <SidebarTrigger className="-ml-1" />
           <Button asChild variant="ghost" size="icon" className="size-7">
             <Link href="/function/tasks">
               <ArrowLeftIcon />
             </Link>
           </Button>
-          <h1 className="min-w-0 flex-1 truncate text-sm font-semibold" title={task.name || task.description}>
+          <h1
+            className="min-w-0 flex-1 basis-[calc(100%-5rem)] truncate text-base font-semibold tracking-tight sm:basis-0 lg:text-xl"
+            title={task.name || task.description}
+          >
             {task.name || task.description}
           </h1>
           <code className="hidden rounded bg-muted px-1.5 py-0.5 font-mono text-xs text-muted-foreground sm:inline">
@@ -396,11 +400,14 @@ function TaskDetailInner() {
             {controlIcon}
             {controlLabel}
           </Button>
+          <ThemeSwitcher />
         </div>
-        <p className="truncate text-xs text-muted-foreground">{task.goal}</p>
+        <p className="truncate text-sm leading-relaxed text-muted-foreground" title={task.goal}>
+          {task.goal}
+        </p>
         {/* Tabs */}
         <div className="no-scrollbar min-w-0 overflow-x-auto">
-          <TabsList variant="default" className="min-w-max">
+          <TabsList variant="line" className="min-w-max">
             {TAB_VALUES.map((value) => (
               <TabsTrigger key={value} value={value}>
                 {t(`tabs.${value}`)}
@@ -416,7 +423,7 @@ function TaskDetailInner() {
       </header>
 
       {/* Tab content */}
-      <div className="flex-1 p-4 lg:p-6">
+      <div className="min-w-0 flex-1 p-4 lg:p-8">
         <TabsContent value="sessions" className="mt-0">
           <SessionsTab taskId={id} />
         </TabsContent>

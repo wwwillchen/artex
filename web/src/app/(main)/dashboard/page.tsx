@@ -494,17 +494,17 @@ export default function DashboardPage() {
   // ── render ────────────────────────────────────────────────────────────────
 
   return (
-    <div className="flex flex-1 flex-col gap-4 pb-6">
+    <div className="flex flex-1 flex-col gap-6 pb-6">
       {/* ── Header ── */}
       <div>
         <div>
-          <h1 className="text-lg font-semibold tracking-tight">{t("title")}</h1>
-          <p className="text-xs text-muted-foreground">{t("subtitle")}</p>
+          <h1 className="workspace-page-title">{t("title")}</h1>
+          <p className="mt-2 text-sm text-muted-foreground">{t("subtitle")}</p>
         </div>
       </div>
 
       {/* ── Row 1: 5 stat cards ── */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5 [&_[data-slot=card]]:gap-3 [&_[data-slot=card-header]>div:first-child]:text-xs [&_[data-slot=card-content]]:text-xs [&_.text-2xl]:text-3xl [&_.text-2xl]:tracking-tight">
         {/* 活跃任务 */}
         <Card className="gap-1">
           <CardHeader className="pb-0">
@@ -518,17 +518,17 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent className="flex flex-wrap gap-x-2.5 gap-y-0.5 text-[10px]">
             {(tasksByStatus.running ?? 0) > 0 && (
-              <span className="text-blue-400">
+              <span className="text-blue-700 dark:text-blue-400">
                 {t("statExplore")} {tasksByStatus.running}
               </span>
             )}
             {(tasksByStatus.paused ?? 0) > 0 && (
-              <span className="text-amber-400">
+              <span className="text-amber-700 dark:text-amber-400">
                 {t("statPaused")} {tasksByStatus.paused}
               </span>
             )}
             {(tasksByStatus.done ?? 0) > 0 && (
-              <span className="text-emerald-400">
+              <span className="text-emerald-700 dark:text-emerald-400">
                 {t("statDone")} {tasksByStatus.done}
               </span>
             )}
@@ -545,16 +545,16 @@ export default function DashboardPage() {
             <div className="text-2xl font-semibold tabular-nums">{findings.length}</div>
           </CardHeader>
           <CardContent className="flex flex-wrap gap-2.5 text-[10px]">
-            <span className="text-rose-500">
+            <span className="text-rose-700 dark:text-rose-400">
               {tStatus("severity.critical")} {findingsBySev.critical}
             </span>
-            <span className="text-red-400">
+            <span className="text-red-700 dark:text-red-400">
               {tStatus("severity.high")} {findingsBySev.high}
             </span>
-            <span className="text-amber-400">
+            <span className="text-amber-700 dark:text-amber-400">
               {tStatus("severity.medium")} {findingsBySev.medium}
             </span>
-            <span className="text-slate-400">
+            <span className="text-slate-600 dark:text-slate-400">
               {tStatus("severity.low")} {findingsBySev.low}
             </span>
           </CardContent>
@@ -775,8 +775,8 @@ export default function DashboardPage() {
 
           {/* Right: daily bar chart */}
           <div className="flex min-h-0 flex-col">
-            <div className="mb-2 flex items-center justify-between">
-              <div className="flex gap-3 text-[9px] text-muted-foreground">
+            <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+              <div className="flex gap-3 text-xs text-muted-foreground">
                 {(["input", "output", "cacheRead"] as const).map((k) => (
                   <span key={k} className="flex items-center gap-1">
                     <span
@@ -802,7 +802,7 @@ export default function DashboardPage() {
                     key={days}
                     onClick={() => setTokenDays(days)}
                     className={cn(
-                      "rounded px-2.5 py-0.5 text-[9px] font-medium transition-colors",
+                      "rounded px-2 py-1 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                       tokenDays === days
                         ? "bg-background text-foreground shadow-sm"
                         : "text-muted-foreground hover:text-foreground",
@@ -816,8 +816,8 @@ export default function DashboardPage() {
 
             {dailyTokenData.length === 0 ? (
               <div
-                className="flex flex-1 items-center justify-center rounded-lg border bg-muted/10 text-xs text-muted-foreground"
-                style={{ minHeight: 180 }}
+                className="flex flex-1 items-center justify-center rounded-md border border-dashed bg-muted/10 text-sm text-muted-foreground"
+                style={{ minHeight: 120 }}
               >
                 {t("noData")}
               </div>

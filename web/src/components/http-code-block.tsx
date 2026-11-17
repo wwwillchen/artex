@@ -145,7 +145,7 @@ export function HttpCodeBlock({ raw }: { raw: string }) {
   };
 
   return (
-    <div className="relative mx-3 my-4 overflow-hidden rounded-md border bg-background shadow-xs">
+    <div className="evidence-panel relative mx-3 my-4 overflow-hidden">
       <div className="absolute top-2 right-2 flex items-center gap-0.5 rounded-md border bg-background/95 p-0.5 shadow-xs">
         <Tooltip>
           <TooltipTrigger asChild>
@@ -184,7 +184,7 @@ export function HttpCodeBlock({ raw }: { raw: string }) {
         aria-multiline="true"
         aria-readonly="true"
         tabIndex={0}
-        className="max-h-[calc(100vh-15rem)] min-w-0 overflow-auto bg-background py-3 font-mono text-xs outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+        className="max-h-[calc(100vh-15rem)] min-w-0 overflow-auto bg-background py-4 font-mono text-xs outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
         onKeyDown={(event) => {
           if (!(event.ctrlKey || event.metaKey) || event.key.toLowerCase() !== "a") return;
           event.preventDefault();
@@ -200,7 +200,7 @@ export function HttpCodeBlock({ raw }: { raw: string }) {
           <div
             key={`${index}-${line}`}
             data-line={index + 1}
-            className="grid min-w-0 grid-cols-[1.5rem_minmax(0,1fr)] leading-relaxed before:sticky before:left-0 before:self-stretch before:border-r before:bg-muted/20 before:px-1 before:text-right before:text-muted-foreground/60 before:content-[attr(data-line)]"
+            className="grid min-w-0 grid-cols-[2.5rem_minmax(0,1fr)] leading-6 before:sticky before:left-0 before:self-stretch before:border-r before:bg-card before:px-2 before:text-right before:text-muted-foreground before:content-[attr(data-line)]"
           >
             <code
               className={cn(

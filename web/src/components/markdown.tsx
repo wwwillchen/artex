@@ -8,11 +8,11 @@ import remarkGfm from "remark-gfm";
 // Tailwind-styled element overrides (no typography plugin in this project, so we
 // style each element). `node` is stripped — it's not a valid DOM attribute.
 const components: Components = {
-  h1: ({ node, ...p }) => <div className="mt-2.5 text-base font-semibold" {...p} />,
-  h2: ({ node, ...p }) => <div className="mt-2 text-sm font-semibold" {...p} />,
-  h3: ({ node, ...p }) => <div className="mt-1.5 text-sm font-medium text-foreground/90" {...p} />,
+  h1: ({ node, ...p }) => <div className="mt-5 text-lg font-semibold tracking-tight" {...p} />,
+  h2: ({ node, ...p }) => <div className="mt-4 text-base font-semibold tracking-tight" {...p} />,
+  h3: ({ node, ...p }) => <div className="mt-3 text-sm font-semibold text-foreground/90" {...p} />,
   h4: ({ node, ...p }) => <div className="mt-1.5 text-sm font-medium text-foreground/90" {...p} />,
-  p: ({ node, ...p }) => <p className="leading-relaxed" {...p} />,
+  p: ({ node, ...p }) => <p className="max-w-prose leading-7" {...p} />,
   ul: ({ node, ...p }) => <ul className="my-1 list-disc space-y-0.5 pl-5" {...p} />,
   ol: ({ node, ...p }) => <ol className="my-1 list-decimal space-y-0.5 pl-5" {...p} />,
   strong: ({ node, ...p }) => <strong className="font-semibold" {...p} />,
@@ -24,7 +24,7 @@ const components: Components = {
     <blockquote className="my-1 border-l-2 border-border pl-2.5 text-muted-foreground" {...p} />
   ),
   pre: ({ node, ...p }) => (
-    <pre className="my-1.5 overflow-auto rounded-md bg-muted/70 p-2.5 text-xs leading-relaxed" {...p} />
+    <pre className="my-3 overflow-auto rounded-md border border-border/70 bg-background p-4 text-xs leading-7" {...p} />
   ),
   code: ({ node, className, children, ...rest }) => {
     const block = /language-/.test(className || "");
@@ -49,7 +49,7 @@ const components: Components = {
 
 export function Markdown({ text }: { text: string }) {
   return (
-    <div className="min-w-0 space-y-1.5 text-sm [&>*:first-child]:mt-0">
+    <div className="min-w-0 space-y-2.5 text-sm leading-7 [&>*:first-child]:mt-0">
       <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
         {text}
       </ReactMarkdown>

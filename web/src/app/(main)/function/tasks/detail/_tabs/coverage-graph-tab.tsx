@@ -14,6 +14,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { api } from "@/lib/api";
 import type { CoverageAssetRef, CoverageAssetRefs, CoverageGraphEdge, CoverageGraphNode } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { usePreferencesStore } from "@/stores/preferences/preferences-provider";
 
 // 每个父节点下、同一类型的子节点默认展示的数量；超出折叠，"展示更多"每次再拉这么多。
 const FOLD_LIMIT = 20;
@@ -235,11 +236,11 @@ function toG6Nodes(
 const nd = (d: unknown) => d as G6NodeDatum;
 
 // 已测=实色高亮；范围内未测=灰；范围外/折叠=更淡的灰 + 虚线描边。
-function nodeFill(d: G6NodeDatum): string {
-  if (d.fold) return "#f1f5f9";
-  if (!d.inScope) return "#e2e8f0";
+function nodeFill(d: G6NodeDatum, dark = false): string {
+  if (d.fold) return dark ? "#242c37" : "#edf0f5";
+  if (!d.inScope) return dark ? "#3b4655" : "#dfe4ec";
   if (d.tested) return kindMeta[d.kind].hex;
-  return "#94a3b8";
+  return dark ? "#606b7b" : "#94a3b8";
 }
 function nodeStroke(d: G6NodeDatum): string {
   if (d.fold || !d.inScope) return "#94a3b8";
@@ -460,6 +461,8 @@ function FoldSheet({
 
 // ---------------------------------------------------------------------------
 function GraphInner({ taskId, coverageEnabled = true }: { taskId: string; coverageEnabled?: boolean }) {
+  const resolvedThemeMode = usePreferencesStore((s) => s.resolvedThemeMode);
+  const themePreset = usePreferencesStore((s) => s.themePreset);
   const [data, setData] = React.useState<{
     nodes: CoverageGraphNode[];
     edges: CoverageGraphEdge[];
@@ -544,22 +547,27 @@ function GraphInner({ taskId, coverageEnabled = true }: { taskId: string; covera
     });
   }, []);
 
-  // 建图（一次）。动态 import 避开 SSR/静态导出期的 window 依赖。
+  // Canvas colors must be refreshed when the appearance changes, just like CSS surfaces.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: themePreset refreshes computed canvas colors when CSS tokens change.
   React.useEffect(() => {
     let destroyed = false;
     let graph: G6Graph | null = null;
     void (async () => {
       const { Graph } = await import("@antv/g6");
       if (destroyed || !containerRef.current) return;
+      const root = document.documentElement;
+      const styles = getComputedStyle(root);
+      const color = (name: string) => styles.getPropertyValue(name).trim();
+      const dark = resolvedThemeMode === "dark";
       graph = new Graph({
         container: containerRef.current,
         autoResize: true,
         autoFit: "view",
-        background: "#f0f2f7",
+        background: color("--background"),
         node: {
           style: {
             size: (d: unknown) => nd(d).size,
-            fill: (d: unknown) => nodeFill(nd(d)),
+            fill: (d: unknown) => nodeFill(nd(d), dark),
             stroke: (d: unknown) => nodeStroke(nd(d)),
             lineWidth: (d: unknown) => (nd(d).fold || !nd(d).inScope ? 1 : 1.5),
             lineDash: (d: unknown) => (nd(d).fold || !nd(d).inScope ? [3, 3] : [0]),
@@ -569,15 +577,15 @@ function GraphInner({ taskId, coverageEnabled = true }: { taskId: string; covera
             labelText: (d: unknown) => nd(d).lbl,
             labelFontSize: 10,
             labelPlacement: "bottom",
-            labelFill: "#475569",
+            labelFill: color("--foreground"),
             labelBackground: true,
-            labelBackgroundFill: "rgba(255,255,255,0.75)",
+            labelBackgroundFill: color("--card"),
             labelBackgroundRadius: 3,
             labelPadding: [1, 3],
           },
         },
         edge: {
-          style: { stroke: "#cbd5e1", lineWidth: 1, endArrow: false },
+          style: { stroke: color("--input"), lineWidth: 1, endArrow: false },
         },
         layout: {
           type: "d3-force",
@@ -620,7 +628,7 @@ function GraphInner({ taskId, coverageEnabled = true }: { taskId: string; covera
       graph?.destroy();
       graphRef.current = null;
     };
-  }, [applyData]);
+  }, [applyData, resolvedThemeMode, themePreset]);
 
   // 可见集合变化 → 重新灌数据 + 布局。sig 只作为重排触发器（applyData 读 gDataRef）。
   // biome-ignore lint/correctness/useExhaustiveDependencies: sig 是刻意的重排触发依赖

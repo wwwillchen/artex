@@ -303,6 +303,7 @@ function compareTasks(left: Task, right: Task, field: TaskSortField, direction: 
 export default function TasksPage() {
   const t = useTranslations("tasksPage");
   const ts = useTranslations("status");
+  const tNav = useTranslations("nav.item");
   const [activeTab, setActiveTab] = React.useState("current");
   const [tasks, setTasks] = React.useState<Task[]>([]);
   const [categories, setCategories] = React.useState<TaskCategory[]>([]);
@@ -791,14 +792,18 @@ export default function TasksPage() {
   );
 
   return (
-    <Tabs value={activeTab} onValueChange={setActiveTab} className="gap-4">
-      <TabsList className="mx-4 lg:mx-6">
+    <Tabs value={activeTab} onValueChange={setActiveTab} className="gap-5">
+      <div className="space-y-2">
+        <h1 className="workspace-page-title">{tNav("tasks")}</h1>
+        <p className="text-sm text-muted-foreground">{t("create.description")}</p>
+      </div>
+      <TabsList variant="line" className="mb-1">
         <TabsTrigger value="current">{t("tab.current")}</TabsTrigger>
         <TabsTrigger value="archived">{t("tab.archived")}</TabsTrigger>
       </TabsList>
       <TabsContent value="current">
         <Card>
-          <CardContent className="flex flex-col gap-4 px-0 pt-6">
+          <CardContent className="flex flex-col gap-5 px-0 pt-1">
             <div className="flex flex-wrap items-center gap-2 px-4 lg:px-6">
               <div className="relative w-full sm:max-w-xs">
                 <SearchIcon className="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2" />

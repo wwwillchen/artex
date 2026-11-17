@@ -11,6 +11,7 @@ import {
   SIDEBAR_COLLAPSIBLE_VALUES,
   SIDEBAR_VARIANT_VALUES,
 } from "@/lib/preferences/layout";
+import { PREFERENCE_DEFAULTS } from "@/lib/preferences/preferences-config";
 import { THEME_MODE_VALUES, THEME_PRESET_VALUES } from "@/lib/preferences/theme";
 import { applyThemeMode, subscribeToSystemTheme } from "@/lib/preferences/theme-utils";
 
@@ -32,7 +33,7 @@ function readDomState(): Partial<PreferencesState> {
   const resolvedMode = root.classList.contains("dark") ? "dark" : "light";
 
   return {
-    themeMode: themeModeAttr ?? resolvedMode,
+    themeMode: themeModeAttr ?? PREFERENCE_DEFAULTS.theme_mode,
     resolvedThemeMode: resolvedMode,
     themePreset: getSafeValue(root.getAttribute("data-theme-preset"), THEME_PRESET_VALUES),
     font: getSafeValue(root.getAttribute("data-font"), FONT_VALUES),

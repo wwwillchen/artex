@@ -3,33 +3,50 @@
 import { Monitor, Moon, Sun } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { persistPreference } from "@/lib/preferences/preferences-storage";
+import { THEME_MODE_OPTIONS, type ThemeMode } from "@/lib/preferences/theme";
 import { usePreferencesStore } from "@/stores/preferences/preferences-provider";
-
-const THEME_CYCLE = ["light", "dark", "system"] as const;
 
 export function ThemeSwitcher() {
   const themeMode = usePreferencesStore((s) => s.themeMode);
   const setThemeMode = usePreferencesStore((s) => s.setThemeMode);
 
-  const cycleTheme = () => {
-    const currentIndex = THEME_CYCLE.indexOf(themeMode);
-    const nextTheme = THEME_CYCLE[(currentIndex + 1) % THEME_CYCLE.length];
-
-    setThemeMode(nextTheme);
-    void persistPreference("theme_mode", nextTheme);
+  const changeTheme = (value: string) => {
+    if (!THEME_MODE_OPTIONS.some((option) => option.value === value)) return;
+    const mode = value as ThemeMode;
+    setThemeMode(mode);
+    void persistPreference("theme_mode", mode);
   };
+  const label = THEME_MODE_OPTIONS.find((option) => option.value === themeMode)?.label ?? "System";
+  const Icon = themeMode === "system" ? Monitor : themeMode === "dark" ? Moon : Sun;
 
   return (
-    <Button size="icon" onClick={cycleTheme} aria-label={`Current theme: ${themeMode}. Click to cycle themes`}>
-      {/* SYSTEM */}
-      <Monitor className="hidden [html[data-theme-mode=system]_&]:block" />
-
-      {/* DARK (resolved) */}
-      <Sun className="hidden dark:block [html[data-theme-mode=system]_&]:hidden" />
-
-      {/* LIGHT (resolved) */}
-      <Moon className="block dark:hidden [html[data-theme-mode=system]_&]:hidden" />
-    </Button>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="icon" aria-label={`Appearance: ${label}`} title={`Appearance: ${label}`}>
+          <Icon />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="min-w-40">
+        <DropdownMenuRadioGroup value={themeMode} onValueChange={changeTheme}>
+          {THEME_MODE_OPTIONS.map((option) => {
+            const ModeIcon = option.value === "system" ? Monitor : option.value === "dark" ? Moon : Sun;
+            return (
+              <DropdownMenuRadioItem key={option.value} value={option.value}>
+                <ModeIcon className="size-4 text-muted-foreground" />
+                {option.label}
+              </DropdownMenuRadioItem>
+            );
+          })}
+        </DropdownMenuRadioGroup>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

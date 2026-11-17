@@ -39,7 +39,9 @@ function workerColor(name: string): string {
 }
 
 const chip = (worker: string) =>
-  "mt-0.5 shrink-0 rounded px-1 text-[9px] font-medium text-white " + workerColor(worker);
+  "mt-0.5 shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium " +
+  (worker === "mainagent" ? "text-primary-foreground " : "text-white ") +
+  workerColor(worker);
 
 // useInView latches true when the ref'd element first comes within `rootMargin` of
 // the enclosing scroll viewport. Blocks that always show their full body (user
@@ -468,9 +470,16 @@ function ToolBlock({
     <section
       ref={targetRef}
       aria-label={focused ? t("tool.pinned", { seq: use?.seq ?? "" }) : undefined}
-      className={focused ? "rounded-lg border-2 border-primary bg-primary/5 p-3 text-xs" : "text-xs"}
+      className={
+        focused ? "evidence-panel border-2 border-primary bg-primary/5 p-3 text-xs" : "evidence-panel my-1 text-xs"
+      }
     >
-      <button type="button" onClick={toggle} className="flex w-full items-start gap-2 py-1 text-left hover:bg-muted/40">
+      <button
+        type="button"
+        onClick={toggle}
+        aria-expanded={open}
+        className="flex w-full items-start gap-2 rounded-md px-3 py-2.5 text-left hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      >
         <span className="mt-0.5 text-muted-foreground">
           {open ? <ChevronDown className="size-3" /> : <ChevronRight className="size-3" />}
         </span>
@@ -481,7 +490,7 @@ function ToolBlock({
         <span className={"ml-auto shrink-0 font-medium " + statusTone}>{statusText}</span>
       </button>
       {open && (
-        <pre className="ml-7 mb-1 max-h-72 overflow-auto whitespace-pre-wrap break-all rounded bg-muted/50 p-2 font-mono text-[11px] leading-relaxed">
+        <pre className="max-h-80 overflow-auto whitespace-pre border-t bg-background px-4 py-3 font-mono text-xs leading-6">
           {detail ?? t("loading")}
         </pre>
       )}
@@ -639,7 +648,7 @@ function UserRow({
           </div>
         )}
         {text && (
-          <div className="min-w-0 max-w-full whitespace-pre-wrap rounded-lg rounded-tr-sm bg-primary px-3 py-1.5 text-sm text-primary-foreground [overflow-wrap:anywhere]">
+          <div className="min-w-0 max-w-prose whitespace-pre-wrap rounded-lg rounded-tr-sm border border-primary/20 bg-accent px-4 py-3 text-sm leading-7 text-foreground [overflow-wrap:anywhere]">
             {text}
           </div>
         )}
@@ -673,11 +682,13 @@ function AnswerBlock({ step, getDetail }: { step: Activity; getDetail: (seq: num
     };
   }, [inView, step.seq, getDetail, step.summary]);
   return (
-    <div ref={ref} className="mb-2 mt-1 flex min-w-0 flex-col gap-1">
+    <div ref={ref} className="mb-4 mt-2 flex min-w-0 flex-col gap-2">
       <div
         className={
-          "min-w-0 flex-1 break-words rounded-lg bg-muted px-3 py-2 " +
-          (step.is_error ? "text-sm text-red-600 dark:text-red-400" : "")
+          "min-w-0 flex-1 break-words rounded-lg border px-4 py-4 sm:px-5 " +
+          (step.is_error
+            ? "border-destructive/30 bg-destructive/5 text-sm leading-7 text-destructive"
+            : "border-border/70 bg-card")
         }
       >
         {step.is_error ? (

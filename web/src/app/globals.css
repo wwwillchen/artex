@@ -55,76 +55,76 @@
 /* Default theme styles (used when no data-theme-preset is set or when 'default' is selected).
 These serve as the fallback; there is no separate default.css file. */
 :root {
-  --radius: 0.625rem;
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --radius: 0.5rem;
+  --card: #ffffff;
+  --card-foreground: #202631;
+  --popover: #ffffff;
+  --popover-foreground: #202631;
+  --primary: #6950c5;
+  --primary-foreground: #ffffff;
+  --secondary: #edf0f5;
+  --secondary-foreground: #354052;
+  --muted: #edf0f5;
+  --muted-foreground: #606b7b;
+  --accent: #eee9fb;
+  --accent-foreground: #5941ad;
+  --destructive: #c3374b;
+  --border: #dfe4ec;
+  --input: #cbd3df;
+  --ring: #8066d4;
+  --chart-1: #6950c5;
+  --chart-2: #247b99;
+  --chart-3: #298367;
+  --chart-4: #a26b20;
+  --chart-5: #a45283;
+  --sidebar: #eef1f6;
+  --sidebar-foreground: #4c586a;
+  --sidebar-primary: #6950c5;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #e4ddf7;
+  --sidebar-accent-foreground: #5941ad;
+  --sidebar-border: #dfe4ec;
+  --sidebar-ring: #8066d4;
 
   /* fonts */
   --font-sans: var(--font-geist);
   --font-mono: var(--font-geist-mono);
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
+  --background: #f6f7fa;
+  --foreground: #202631;
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --background: #111418;
+  --foreground: #e8edf3;
+  --card: #191e25;
+  --card-foreground: #e8edf3;
+  --popover: #202630;
+  --popover-foreground: #e8edf3;
+  --primary: #a995ff;
+  --primary-foreground: #19132e;
+  --secondary: #242c37;
+  --secondary-foreground: #d9e1ed;
+  --muted: #202731;
+  --muted-foreground: #a3adba;
+  --accent: #2b2540;
+  --accent-foreground: #c9baff;
+  --destructive: #f08090;
+  --border: #2c3440;
+  --input: #3b4655;
+  --ring: #a995ff;
+  --chart-1: #a995ff;
+  --chart-2: #72bdd9;
+  --chart-3: #6dc7a5;
+  --chart-4: #e5b66d;
+  --chart-5: #d99fca;
+  --sidebar: #15191f;
+  --sidebar-foreground: #a3adba;
+  --sidebar-primary: #a995ff;
+  --sidebar-primary-foreground: #19132e;
+  --sidebar-accent: #2b2540;
+  --sidebar-accent-foreground: #c9baff;
+  --sidebar-border: #2c3440;
+  --sidebar-ring: #a995ff;
 }
 
 @layer base {
@@ -135,9 +135,40 @@ These serve as the fallback; there is no separate default.css file. */
   body {
     @apply bg-background text-foreground;
     font-family: var(--font-sans), system-ui, sans-serif;
+    line-height: 1.5;
   }
   html {
     @apply font-sans;
+  }
+
+  ::selection {
+    background: color-mix(in srgb, var(--primary) 25%, transparent);
+    color: var(--foreground);
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--input) transparent;
+  }
+}
+
+@layer components {
+  /* Shared presentation only; page data, actions and layout preferences stay intact. */
+  .workspace-page-title {
+    font-size: clamp(1.25rem, 1.1rem + 0.5vw, 1.625rem);
+    font-weight: 650;
+    letter-spacing: -0.035em;
+    line-height: 1.25;
+  }
+
+  [data-slot="sidebar-menu-button"][data-active="true"] {
+    box-shadow: inset 2px 0 var(--sidebar-primary);
+  }
+
+  .evidence-panel {
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--card);
   }
 }
 
@@ -236,6 +267,17 @@ html {
 
 .disable-transitions * {
   transition: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 [data-print-root] {
