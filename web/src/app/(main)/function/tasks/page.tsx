@@ -3,6 +3,7 @@
 import * as React from "react";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 import {
   DndContext,
@@ -3151,6 +3152,7 @@ function CreateTaskSheet({
   onCategoriesChanged: () => void;
 }) {
   const t = useTranslations("tasksPage");
+  const router = useRouter();
   const [open, setOpen] = React.useState(false);
   const [name, setName] = React.useState("");
   const [categoryID, setCategoryID] = React.useState<number | undefined>(undefined);
@@ -3222,7 +3224,7 @@ function CreateTaskSheet({
     try {
       const timeoutSec = Math.max(0, Math.floor(Number(timeoutMin) || 0)) * 60;
       const heartbeatSec = Math.max(10, Math.floor(Number(heartbeatMin) || 10)) * 60; // 下限 10min，与后端归一一致
-      await api.createTask({
+      const task = await api.createTask({
         name: name.trim(),
         categoryId: categoryID,
         description: description.trim(),
@@ -3256,6 +3258,7 @@ function CreateTaskSheet({
       draftIdRef.current = "";
       setOpen(false);
       onCreated();
+      router.push(`/function/tasks/detail?id=${encodeURIComponent(task.id)}`);
     } catch (e) {
       toast.error(t("create.createFailed", { msg: (e as Error).message }));
     } finally {
@@ -3284,42 +3287,6 @@ function CreateTaskSheet({
 
         <div className="flex-1 overflow-y-auto p-6">
           <div className="grid gap-5">
-            <TaskTemplateControls
-              description={description}
-              goal={goal}
-              categoryID={categoryID}
-              interceptRules={interceptRules}
-              selectedTemplateID={selectedTemplateID}
-              onSelectedTemplateIDChange={setSelectedTemplateID}
-              onApply={(template) => {
-                setDescription(template.description);
-                setGoal(template.goal);
-                setCategoryID(template.category_id ?? undefined);
-                setInterceptRules(template.intercept_rules ?? []);
-                setUploadCount(0);
-              }}
-              portalContainer={sheetContentRef}
-            />
-            <div className="grid gap-2">
-              <Label htmlFor="name">{t("create.nameLabel")}</Label>
-              <Input
-                id="name"
-                placeholder={t("create.namePlaceholder")}
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
-            </div>
-            <Field>
-              <FieldLabel htmlFor="task-category">{t("create.categoryLabel")}</FieldLabel>
-              <CategoryPicker
-                categories={categories}
-                value={categoryID}
-                onValueChange={setCategoryID}
-                onCategoryCreated={onCategoriesChanged}
-                portalContainer={sheetContentRef}
-              />
-              <FieldDescription>{t("create.categoryHint")}</FieldDescription>
-            </Field>
             <div className="grid gap-2">
               <Label htmlFor="description">{t("create.descLabel")}</Label>
               <Textarea
@@ -3364,31 +3331,6 @@ function CreateTaskSheet({
               />
             </div>
             <Field>
-              <FieldLabel htmlFor="source-tasks">{t("create.sourceLabel")}</FieldLabel>
-              <SourceTaskPicker
-                tasks={tasks}
-                value={sourceTaskIDs}
-                onValueChange={setSourceTaskIDs}
-                portalContainer={sheetContentRef}
-              />
-              <FieldDescription>{t("create.sourceHint", { max: MAX_SOURCE_TASKS })}</FieldDescription>
-            </Field>
-            <Field>
-              <FieldLabel htmlFor="task-companies">{t("create.companyLabel")}</FieldLabel>
-              <CompanyPicker
-                companies={companies}
-                value={companyIDs}
-                onValueChange={setCompanyIDs}
-                portalContainer={sheetContentRef}
-              />
-              <FieldDescription>{t("create.companyHint")}</FieldDescription>
-            </Field>
-            <Field>
-              <FieldLabel htmlFor="task-intercept-rules">{t("create.interceptLabel")}</FieldLabel>
-              <AssetInterceptRulesEditor value={interceptRules} onChange={setInterceptRules} />
-              <FieldDescription>{t("create.interceptHint")}</FieldDescription>
-            </Field>
-            <Field>
               <FieldLabel htmlFor="llm-profiles">{t("create.llmLabel")}</FieldLabel>
               <TaskLLMProfileChain
                 profiles={profiles}
@@ -3397,7 +3339,11 @@ function CreateTaskSheet({
                 inputId="llm-profiles"
                 portalContainer={sheetContentRef}
               />
-              <FieldDescription>{t("create.llmHint")}</FieldDescription>
+              <FieldDescription>
+                {llmProfileIDs.length
+                  ? t("create.llmHint")
+                  : profiles.find((profile) => profile.is_default)?.name ?? "Uses the default model profile"}
+              </FieldDescription>
             </Field>
 
             {/* 高级参数默认折叠:超时/心跳/首个意图,展开才占空间,常用路径保持清爽。 */}
@@ -3408,6 +3354,67 @@ function CreateTaskSheet({
                 <span className="text-muted-foreground ml-auto text-xs font-normal">{t("create.advancedSub")}</span>
               </CollapsibleTrigger>
               <CollapsibleContent className="grid gap-5 pt-5">
+                <TaskTemplateControls
+                  description={description}
+                  goal={goal}
+                  categoryID={categoryID}
+                  interceptRules={interceptRules}
+                  selectedTemplateID={selectedTemplateID}
+                  onSelectedTemplateIDChange={setSelectedTemplateID}
+                  onApply={(template) => {
+                    setDescription(template.description);
+                    setGoal(template.goal);
+                    setCategoryID(template.category_id ?? undefined);
+                    setInterceptRules(template.intercept_rules ?? []);
+                    setUploadCount(0);
+                  }}
+                  portalContainer={sheetContentRef}
+                />
+                <div className="grid gap-2">
+                  <Label htmlFor="name">{t("create.nameLabel")}</Label>
+                  <Input
+                    id="name"
+                    placeholder={t("create.namePlaceholder")}
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                  />
+                </div>
+                <Field>
+                  <FieldLabel htmlFor="task-category">{t("create.categoryLabel")}</FieldLabel>
+                  <CategoryPicker
+                    categories={categories}
+                    value={categoryID}
+                    onValueChange={setCategoryID}
+                    onCategoryCreated={onCategoriesChanged}
+                    portalContainer={sheetContentRef}
+                  />
+                  <FieldDescription>{t("create.categoryHint")}</FieldDescription>
+                </Field>
+                <Field>
+                  <FieldLabel htmlFor="source-tasks">{t("create.sourceLabel")}</FieldLabel>
+                  <SourceTaskPicker
+                    tasks={tasks}
+                    value={sourceTaskIDs}
+                    onValueChange={setSourceTaskIDs}
+                    portalContainer={sheetContentRef}
+                  />
+                  <FieldDescription>{t("create.sourceHint", { max: MAX_SOURCE_TASKS })}</FieldDescription>
+                </Field>
+                <Field>
+                  <FieldLabel htmlFor="task-companies">{t("create.companyLabel")}</FieldLabel>
+                  <CompanyPicker
+                    companies={companies}
+                    value={companyIDs}
+                    onValueChange={setCompanyIDs}
+                    portalContainer={sheetContentRef}
+                  />
+                  <FieldDescription>{t("create.companyHint")}</FieldDescription>
+                </Field>
+                <Field>
+                  <FieldLabel htmlFor="task-intercept-rules">{t("create.interceptLabel")}</FieldLabel>
+                  <AssetInterceptRulesEditor value={interceptRules} onChange={setInterceptRules} />
+                  <FieldDescription>{t("create.interceptHint")}</FieldDescription>
+                </Field>
                 <div className="grid gap-2">
                   <Label htmlFor="timeout-min">{t("create.timeoutLabel")}</Label>
                   <Input

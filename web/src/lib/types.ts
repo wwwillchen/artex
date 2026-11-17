@@ -418,6 +418,7 @@ export interface TaskNode {
   priority: number; // 0..10
   state: string; // GoalState | IntentState | FindingState | HintState
   origin: string;
+  owner?: string;
   ts: string;
   source_task_id?: string;
   inherited?: boolean;

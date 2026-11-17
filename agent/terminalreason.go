@@ -54,6 +54,9 @@ func terminalText(ctx context.Context, term *harness.Terminal, tr *runTrace) (st
 	if reason == "" && ctx.Err() != nil {
 		aborted = true
 	}
+	if resolveOutputLang() == "en" {
+		return englishTerminalText(ctx, term, tr, aborted)
+	}
 
 	var sum string
 	if aborted {
@@ -116,6 +119,63 @@ func terminalText(ctx context.Context, term *harness.Terminal, tr *runTrace) (st
 		fmt.Fprintf(&b, "- **中断前最后一个工具**: `%s`（已正常返回）\n", tr.name)
 	}
 	return sum, b.String()
+}
+
+var englishReasonHint = map[harness.TerminalReason]string{
+	harness.ReasonCompleted:         "The model finished without a text summary.",
+	harness.ReasonMaxTurns:          "The run reached its turn limit.",
+	harness.ReasonTimeout:           "The run reached its time limit.",
+	harness.ReasonModelError:        "A model request failed.",
+	harness.ReasonBlockingLimit:     "The request exceeded the context limit.",
+	harness.ReasonPromptTooLong:     "The prompt was still too long after context compaction.",
+	harness.ReasonImageError:        "The selected model could not process the image.",
+	harness.ReasonStopHookPrevented: "A stop hook prevented normal completion.",
+	harness.ReasonHookStopped:       "A tool or hook stopped the run.",
+	harness.ReasonAbortedStreaming:  "The run was cancelled while the model was responding.",
+	harness.ReasonAbortedTools:      "The run was cancelled during tool execution.",
+}
+
+func englishTerminalText(ctx context.Context, term *harness.Terminal, tr *runTrace, aborted bool) (string, string) {
+	summary := englishReasonHint[term.Reason]
+	if summary == "" {
+		summary = "The run ended without a text summary."
+		if aborted {
+			summary = "The run was cancelled."
+		}
+	}
+	var detail strings.Builder
+	fmt.Fprintf(&detail, "%s\n\n- **Outcome:** `%s`\n", summary, terminalReasonLabel(term.Reason))
+	if aborted {
+		if code, _, _, ok := AbortReason(ctx); ok {
+			fmt.Fprintf(&detail, "- **Cancellation reason:** `%s`\n", code)
+		}
+	}
+	if term.Err != nil {
+		fmt.Fprintf(&detail, "- **Underlying error:** %v\n", term.Err)
+	}
+	if term.Turns > 0 {
+		fmt.Fprintf(&detail, "- **Model turns:** %d\n", term.Turns)
+	}
+	if !tr.startedAt.IsZero() {
+		fmt.Fprintf(&detail, "- **Duration:** %s\n", roundDur(time.Since(tr.startedAt)))
+	}
+	if u := term.Usage; u.InputTokens+u.OutputTokens+u.CacheReadTokens+u.CacheWriteTokens > 0 {
+		fmt.Fprintf(&detail, "- **Tokens:** %d input, %d output, %d cache reads, %d cache writes\n",
+			u.InputTokens, u.OutputTokens, u.CacheReadTokens, u.CacheWriteTokens)
+	}
+	switch {
+	case tr.name == "":
+		detail.WriteString("- **Tool calls:** No tools ran.\n")
+	case tr.pending:
+		fmt.Fprintf(&detail, "- **Tool in progress:** `%s` ran for %s without returning a result.\n\n  ```json\n  %s\n  ```\n",
+			tr.name, roundDur(time.Since(tr.at)), firstLine(tr.input, 300))
+	default:
+		fmt.Fprintf(&detail, "- **Last tool:** `%s` returned a result.\n", tr.name)
+	}
+	if aborted && strings.TrimSpace(term.Text) != "" {
+		fmt.Fprintf(&detail, "\n**Partial output before cancellation**\n\n%s\n", term.Text)
+	}
+	return summary, detail.String()
 }
 
 func terminalReasonLabel(reason harness.TerminalReason) string {

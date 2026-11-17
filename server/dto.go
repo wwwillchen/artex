@@ -183,6 +183,7 @@ type TaskNodeDTO struct {
 	Priority     int    `json:"priority"`
 	State        string `json:"state"`
 	Origin       string `json:"origin"`
+	Owner        string `json:"owner,omitempty"`
 	TS           string `json:"ts"`
 	SourceTaskID string `json:"source_task_id,omitempty"`
 	Inherited    bool   `json:"inherited,omitempty"`
@@ -198,6 +199,7 @@ func taskNodeDTO(n *db.Node) TaskNodeDTO {
 		Priority:     n.Priority,
 		State:        n.State,
 		Origin:       n.Origin,
+		Owner:        n.Owner,
 		TS:           rfc3339(n.CreatedAt),
 	}
 	if n.SourceTaskID > 0 {

@@ -39,7 +39,7 @@ import { Spinner } from "@/components/ui/spinner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { api } from "@/lib/api";
-import type { LLMProfile, Task } from "@/lib/types";
+import type { LLMProfile, Task, TaskNode } from "@/lib/types";
 
 import { AssetsTab } from "./_tabs/assets-tab";
 import { BroadcastTab } from "./_tabs/broadcast-tab";
@@ -50,19 +50,16 @@ import { InterceptTab } from "./_tabs/intercept-tab";
 import { OverviewTab } from "./_tabs/overview-tab";
 import { ReportTab } from "./_tabs/report-tab";
 import { RetestsTab } from "./_tabs/retests-tab";
+import { RunWorkspace } from "./_tabs/run-workspace";
 import { SessionsTab } from "./_tabs/sessions-tab";
 
-const TAB_VALUES = [
-  "sessions",
+const RESULT_TABS = ["findings", "report", "retests"] as const;
+const DETAIL_TABS = [
   "overview",
   "graph",
   "broadcast",
-  "findings",
-  "retests",
   "assets",
   "coverage",
-  "intercept",
-  "report",
 ] as const;
 
 function taskProfileIDs(task: Task): string[] {
@@ -72,7 +69,17 @@ function taskProfileIDs(task: Task): string[] {
   return task.llm_profile_id ? [String(task.llm_profile_id)] : [];
 }
 
-function TaskLLMControl({ task, profiles, onUpdated }: { task: Task; profiles: LLMProfile[]; onUpdated: () => void }) {
+function TaskLLMControl({
+  task,
+  profiles,
+  onUpdated,
+  triggerRef,
+}: {
+  task: Task;
+  profiles: LLMProfile[];
+  onUpdated: () => void;
+  triggerRef: React.Ref<HTMLButtonElement>;
+}) {
   const t = useTranslations("taskDetail.llm");
   const [open, setOpen] = React.useState(false);
   const [profileIDs, setProfileIDs] = React.useState<string[]>(() => taskProfileIDs(task));
@@ -158,6 +165,7 @@ function TaskLLMControl({ task, profiles, onUpdated }: { task: Task; profiles: L
         <Button
           size="sm"
           variant={exhausted ? "destructive" : "outline"}
+          ref={triggerRef}
           aria-label={t("controlAria")}
           title={currentTitle}
         >
@@ -171,6 +179,14 @@ function TaskLLMControl({ task, profiles, onUpdated }: { task: Task; profiles: L
           <PopoverTitle>{t("chainTitle")}</PopoverTitle>
           <PopoverDescription>{editorDescription}</PopoverDescription>
         </PopoverHeader>
+        {profiles.length === 0 && (
+          <p className="text-sm text-muted-foreground">
+            No model profiles are available.{" "}
+            <Link href="/system/llm" className="font-medium text-primary underline underline-offset-4">
+              Open model settings
+            </Link>
+          </p>
+        )}
 
         {exhausted && (
           <Alert variant="destructive">
@@ -205,15 +221,20 @@ function TaskLLMControl({ task, profiles, onUpdated }: { task: Task; profiles: L
   );
 }
 
-function TaskDetailInner() {
+function TaskDetailInner({ id }: { id: string }) {
   const t = useTranslations("taskDetail");
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const id = searchParams.get("id") ?? "";
   const [task, setTask] = React.useState<Task | null>(null);
   const [paused, setPaused] = React.useState(false);
   const [loaded, setLoaded] = React.useState(false);
-  const [tab, setTab] = React.useState("sessions");
+  const [tab, setTab] = React.useState("live");
+  const [sessionStart, setSessionStart] = React.useState<{ work?: TaskNode }>();
+  const modelTrigger = React.useRef<HTMLButtonElement>(null);
+
+  const changeTab = (next: string) => {
+    if (next === "sessions") setSessionStart(undefined);
+    setTab(next);
+  };
   const [interceptPendingCount, setInterceptPendingCount] = React.useState(0);
   const [profiles, setProfiles] = React.useState<LLMProfile[]>([]);
   const [archiving, setArchiving] = React.useState(false);
@@ -352,7 +373,7 @@ function TaskDetailInner() {
   );
 
   return (
-    <Tabs value={tab} onValueChange={setTab} className="flex flex-1 flex-col gap-0">
+    <Tabs value={tab} onValueChange={changeTab} className="flex flex-1 flex-col gap-0">
       {/* Top fixed area */}
       <header className="sticky top-0 z-10 flex flex-col gap-3 border-b bg-background/95 px-4 pt-5 pb-2 backdrop-blur lg:px-8">
         <div className="flex flex-wrap items-center gap-2">
@@ -372,7 +393,7 @@ function TaskDetailInner() {
             {task.id}
           </code>
           <Separator orientation="vertical" className="mx-1 hidden h-4 sm:block" />
-          <TaskLLMControl task={task} profiles={profiles} onUpdated={load} />
+          <TaskLLMControl task={task} profiles={profiles} onUpdated={load} triggerRef={modelTrigger} />
           <StatusBadge domain={terminal ? "task" : "engine"} value={terminal ? task.status : engineMode} dot />
           {canArchive ? (
             <AlertDialog>
@@ -408,62 +429,108 @@ function TaskDetailInner() {
         {/* Tabs */}
         <div className="no-scrollbar min-w-0 overflow-x-auto">
           <TabsList variant="line" className="min-w-max">
-            {TAB_VALUES.map((value) => (
-              <TabsTrigger key={value} value={value}>
-                {t(`tabs.${value}`)}
-                {value === "intercept" && interceptPendingCount > 0 && (
-                  <span className="ml-1.5 inline-flex h-4 min-w-[16px] items-center justify-center rounded-full bg-amber-500 px-1 text-[10px] font-semibold leading-none text-white">
-                    {interceptPendingCount > 99 ? "99+" : interceptPendingCount}
-                  </span>
-                )}
-              </TabsTrigger>
-            ))}
+            <TabsTrigger value="live">Live</TabsTrigger>
+            <TabsTrigger value="results">Results</TabsTrigger>
+            <TabsTrigger value="sessions">Sessions</TabsTrigger>
+            <TabsTrigger value="intercept">
+              Approvals
+              {interceptPendingCount > 0 && (
+                <span className="rounded-full bg-muted px-1.5 text-xs">
+                  {interceptPendingCount}
+                </span>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="details">Details</TabsTrigger>
           </TabsList>
         </div>
       </header>
 
       {/* Tab content */}
       <div className="min-w-0 flex-1 p-4 lg:p-8">
+        <TabsContent value="live" className="mt-0">
+          <RunWorkspace
+            taskId={id}
+            pendingApprovals={interceptPendingCount}
+            showApprovals={() => setTab("intercept")}
+            chooseModel={() => modelTrigger.current?.click()}
+            showSession={(work) => {
+              setSessionStart({ work });
+              setTab("sessions");
+            }}
+          />
+        </TabsContent>
+        <TabsContent value="results" className="mt-0">
+          <Tabs defaultValue="findings" className="gap-4">
+            <TabsList aria-label="Results views">
+              {RESULT_TABS.map((value) => (
+                <TabsTrigger key={value} value={value}>
+                  {t(`tabs.${value}`)}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+            <TabsContent value="findings">
+              <FindingsTab taskId={id} />
+            </TabsContent>
+            <TabsContent value="report">
+              <ReportTab taskId={id} />
+            </TabsContent>
+            <TabsContent value="retests">
+              <RetestsTab taskId={id} />
+            </TabsContent>
+          </Tabs>
+        </TabsContent>
         <TabsContent value="sessions" className="mt-0">
-          <SessionsTab taskId={id} />
-        </TabsContent>
-        <TabsContent value="overview" className="mt-0">
-          <OverviewTab taskId={id} />
-        </TabsContent>
-        <TabsContent value="graph" className="mt-0">
-          <GraphTab taskId={id} />
-        </TabsContent>
-        <TabsContent value="broadcast" className="mt-0">
-          <BroadcastTab taskId={id} />
-        </TabsContent>
-        <TabsContent value="findings" className="mt-0">
-          <FindingsTab taskId={id} />
-        </TabsContent>
-        <TabsContent value="retests" className="mt-0">
-          <RetestsTab key={id} taskId={id} />
-        </TabsContent>
-        <TabsContent value="assets" className="mt-0">
-          <AssetsTab taskId={id} />
-        </TabsContent>
-        <TabsContent value="coverage" className="mt-0">
-          <CoverageGraphTab taskId={id} coverageEnabled={task?.coverage_enabled !== false} />
+          <SessionsTab taskId={id} initialSession={sessionStart} />
         </TabsContent>
         <TabsContent value="intercept" className="mt-0">
           <InterceptTab taskId={id} />
         </TabsContent>
-        <TabsContent value="report" className="mt-0">
-          <ReportTab taskId={id} />
+        <TabsContent value="details" className="mt-0">
+          <Tabs defaultValue="overview" className="gap-4">
+            <div className="overflow-x-auto">
+              <TabsList aria-label="Task details views">
+                {DETAIL_TABS.map((value) => (
+                  <TabsTrigger key={value} value={value}>
+                    {t(`tabs.${value}`)}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </div>
+            <TabsContent value="overview">
+              <OverviewTab taskId={id} />
+            </TabsContent>
+            <TabsContent value="graph">
+              <GraphTab taskId={id} />
+            </TabsContent>
+            <TabsContent value="broadcast">
+              <BroadcastTab taskId={id} />
+            </TabsContent>
+            <TabsContent value="assets">
+              <AssetsTab taskId={id} />
+            </TabsContent>
+            <TabsContent value="coverage">
+              <CoverageGraphTab
+                taskId={id}
+                coverageEnabled={task.coverage_enabled !== false}
+              />
+            </TabsContent>
+          </Tabs>
         </TabsContent>
       </div>
     </Tabs>
   );
 }
 
+function TaskDetailRoute() {
+  const id = useSearchParams().get("id") ?? "";
+  return <TaskDetailInner key={id} id={id} />;
+}
+
 // useSearchParams must sit under a Suspense boundary for static export.
 export default function TaskDetailPage() {
   return (
     <React.Suspense fallback={null}>
-      <TaskDetailInner />
+      <TaskDetailRoute />
     </React.Suspense>
   );
 }

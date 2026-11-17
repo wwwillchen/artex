@@ -85,7 +85,11 @@ func captureRunSession(ctx context.Context, s *agentcore.Session, input string, 
 				rec(activityWithUsage(db.Activity{Kind: "result", Summary: firstLine(sum, 400), Detail: detail}, lastUsage))
 				return finalText, reason, ctx.Err()
 			}
-			rec(activityWithUsage(db.Activity{Kind: "result", IsError: true, Summary: "执行出错: " + err.Error(), Detail: err.Error()}, lastUsage))
+			summary, detail := "执行出错: "+err.Error(), err.Error()
+			if resolveOutputLang() == "en" {
+				summary, detail = terminalText(ctx, &harness.Terminal{Reason: harness.ReasonModelError, Err: err}, lastTool)
+			}
+			rec(activityWithUsage(db.Activity{Kind: "result", IsError: true, Summary: summary, Detail: detail}, lastUsage))
 			return finalText, reason, err
 		}
 		switch ev.Kind {

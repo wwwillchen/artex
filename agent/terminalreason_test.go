@@ -137,6 +137,26 @@ func TestTerminalTextNonAbortReasons(t *testing.T) {
 	}
 }
 
+func TestEnglishTerminalTextMissingProvider(t *testing.T) {
+	previous := OutputLanguage
+	OutputLanguage = func() string { return "en" }
+	t.Cleanup(func() { OutputLanguage = previous })
+
+	const cause = "task 1 has no available fallback LLM provider"
+	summary, detail := terminalText(context.Background(), &harness.Terminal{
+		Reason: harness.ReasonModelError,
+		Err:    errors.New(cause),
+	}, &runTrace{})
+	if summary != "A model request failed." {
+		t.Fatalf("unexpected English summary: %q", summary)
+	}
+	for _, want := range []string{"model_error", cause, "No tools ran."} {
+		if !strings.Contains(detail, want) {
+			t.Errorf("detail missing %q: %s", want, detail)
+		}
+	}
+}
+
 func TestAbortCausesAreWellFormed(t *testing.T) {
 	all := []*AbortCause{
 		AbortPausedByUser, AbortPausedByOrchestrator, AbortTaskDeleted, AbortPausedOnReload,

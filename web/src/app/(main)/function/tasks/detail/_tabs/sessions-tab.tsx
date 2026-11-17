@@ -489,10 +489,13 @@ function WorkerAssetBadge({ assets }: { assets: IntentAsset[] }) {
   );
 }
 
-export function SessionsTab({ taskId }: { taskId: string }) {
+export function SessionsTab({ taskId, initialSession }: { taskId: string; initialSession?: { work?: TaskNode } }) {
+  const initialWork = initialSession?.work;
+  const initialId = initialSession ? initialWork?.id ?? PLANNER_ID : MAIN_ID;
+  const initialWorker = React.useMemo(() => initialWork ? intentToSession(initialWork) : undefined, [initialWork]);
   const t = useTranslations("sessions");
   const approvalFocus = useApprovalFocus({ taskId });
-  const [selectedSessionId, setActiveId] = React.useState(MAIN_ID);
+  const [selectedSessionId, setActiveId] = React.useState(initialId);
   const focusSession = React.useMemo<Session | undefined>(() => {
     const source = approvalFocus.state?.source;
     if (!source) return undefined;
@@ -904,7 +907,7 @@ export function SessionsTab({ taskId }: { taskId: string }) {
     setSessionTokens({});
     setLLMResolutions(null);
     setSseLive(false);
-    setActiveId(MAIN_ID); // a stale worker id from the previous task must not leak in
+    setActiveId(initialId);
     setMainSegs([{ seq: 0, created_at: "" }]);
     setCurrentSeg(0);
     snapshotRef.current = 0;
@@ -966,7 +969,7 @@ export function SessionsTab({ taskId }: { taskId: string }) {
         bootKey = mainSessionKey(ms.current);
         if (bootKey !== mainSessionKey(0)) loadingKeysRef.current.delete(mainSessionKey(0));
         loadingKeysRef.current.add(bootKey);
-        setActiveId(mainSessionId(ms.current));
+        if (initialId === MAIN_ID) setActiveId((id) => id === MAIN_ID ? mainSessionId(ms.current) : id);
         patchStore(bootKey, (s) => ({ ...s, loading: true }));
         return api.activityHistory(taskId, bootKey, 0, PAGE);
       })
@@ -1062,7 +1065,7 @@ export function SessionsTab({ taskId }: { taskId: string }) {
       esRef.current?.close();
       esRef.current = null;
     };
-  }, [taskId, patchStore, t]);
+  }, [taskId, patchStore, t, initialId]);
 
   // Fallback transcript poll — runs ONLY while the SSE stream is down. SSE is the
   // sole live source for the active session's transcript (steps + the human turn),
@@ -1304,10 +1307,10 @@ export function SessionsTab({ taskId }: { taskId: string }) {
       ...workerSessions,
       { ...SYSTEM_SESSION, title: t("title.system") },
     ];
-    const located = focusSession ?? retainedSession;
+    const located = focusSession ?? retainedSession ?? initialWorker;
     if (located && !items.some((s) => s.id === located.id)) items.push(located);
     return items;
-  }, [mainSessions, workerSessions, plannerLive, focusSession, retainedSession, t]);
+  }, [mainSessions, workerSessions, plannerLive, focusSession, retainedSession, initialWorker, t]);
 
   const grouped = {
     mainagent: sessions.filter((s) => s.role === "mainagent"),
