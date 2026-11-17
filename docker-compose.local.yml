@@ -1,0 +1,5 @@
+# Used by `npm run docker:rebuild` to keep local builds separate from release images.
+services:
+  artex:
+    image: artex:local
+    pull_policy: never

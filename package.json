@@ -1,0 +1,7 @@
+{
+  "name": "artex-local",
+  "private": true,
+  "scripts": {
+    "docker:rebuild": "bash scripts/rebuild-docker.sh"
+  }
+}

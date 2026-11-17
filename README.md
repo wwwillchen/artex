@@ -103,6 +103,22 @@ docker compose up -d          # brings up the artex image + postgres together
 
 The image bundles common tools (ripgrep, curl, vim, npm, nmap, and more), and when brought up with compose, `./skills` and `./data` are bind-mounted to the host and survive container recreation.
 
+### Rebuild local UI changes in Docker
+
+With Docker Desktop / Docker Engine running and Node.js/npm, Go (the version in `go.mod`), and `rsync` installed, run this from the repository root:
+
+```bash
+npm run docker:rebuild
+```
+
+Use the same `.env` and checkout as your existing Compose deployment. The command validates Compose configuration, detects the Docker daemon's architecture (`arm64` or `amd64`), builds the static UI and embedded Linux binary, builds `artex:local`, and recreates only the `artex` container. PostgreSQL must already be running. A build failure stops the command before container recreation; the database service and volumes are left in place.
+
+The local image is selected through `docker-compose.local.yml`; no `.env` tag changes are needed. Open `http://localhost:8787` and hard-refresh after rebuilding. `docker compose restart` only restarts the existing container. To keep using the local image with other `up` commands, include both Compose files:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.local.yml up -d
+```
+
 ### Other installation methods
 
 Upstream provides several methods: an install script (`./install.sh`), precompiled binaries (Releases), and a single-binary build from source. The commands and full procedure are collected in the "安装" (Installation) section of [`README.zh.md`](README.zh.md#安装) (in Chinese); the essentials are reproduced below.
